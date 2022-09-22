@@ -129,5 +129,41 @@ nao sei se no insert ou no select por id esta o erro, mas na depuração o codig
     
           }
 
+# RESOLUÇÃO DO ERRO
 
+depois de muita pesquisa e procura, a resolução era mais simples que eu imaginava. O meu insert, nao estava retornando o id gerado pelo BD.
+
+#estava assim :
+
+      public Usuario insert(Usuario usuario) throws SQLException{
+        // conexoes banco dados
+ 
+      String sql = "insert into usuario(usuario,senha) values (?,?)";
+       
+      PreparedStatement statement = connection.prepareStatement(sql);
+      statement.setString(1,usuario.getUsuario());
+      statement.setString(2,usuario.getSenha());        
+        statement.execute(); 
+       
+      ResultSet resultSet = statement.getGeneratedKeys();     
+      if (resultSet.next()){
+        int id = resultSet.getInt("id");
+        usuario.setId(id);         
+      }return usuario;
+ #ficou assim: 
+ 
+       String sql = "insert into usuario(usuario,senha) values (?,?) RETURNING id ;";
+       PreparedStatement statement;       
+       statement = connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+       statement.setString(1,usuario.getUsuario());
+       statement.setString(2,usuario.getSenha());
+       
+      
+       statement.execute(); 
+       
+       ResultSet resultSet = statement.getGeneratedKeys();       
+       if (resultSet.next()){
+        int id = resultSet.getInt("id");
+        usuario.setId(id);         
+       }return usuario;
 
